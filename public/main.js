@@ -3,9 +3,9 @@ const statusDiv = document.getElementById('status');
 const messageInput = document.getElementById('message');
 const sendBtn = document.getElementById('send');
 
-const connections = {}; // lưu kết nối đến các peer
+const connections = {}; // lưu các kết nối peer khác
 
-// Tạo peer mới trên client, connect tới hub server
+// Tạo Peer client, connect tới hub PeerJS server trên Render
 const peer = new Peer(undefined, {
   host: window.location.hostname,
   port: window.location.port || 443,
@@ -17,19 +17,17 @@ peer.on('open', id => {
   broadcast({ type: 'join', id });
 });
 
-// Khi có kết nối từ peer khác
+// Lắng nghe kết nối đến
 peer.on('connection', conn => {
   setupConnection(conn);
 });
 
-// Thiết lập sự kiện cho một kết nối
 function setupConnection(conn) {
   connections[conn.peer] = conn;
 
   conn.on('data', data => {
     if (data.type === 'message') appendChat(`${data.id}: ${data.msg}`);
     else if (data.type === 'join' && data.id !== peer.id) {
-      // khi peer mới join, kết nối lại với họ nếu chưa kết nối
       if (!connections[data.id]) {
         const newConn = peer.connect(data.id);
         setupConnection(newConn);
@@ -38,12 +36,12 @@ function setupConnection(conn) {
   });
 }
 
-// Gửi dữ liệu đến tất cả peer đã kết nối
+// Gửi dữ liệu tới tất cả peer kết nối
 function broadcast(data) {
   Object.values(connections).forEach(conn => conn.send(data));
 }
 
-// Gửi tin nhắn khi nhấn button
+// Gửi tin nhắn
 sendBtn.addEventListener('click', () => {
   const msg = messageInput.value.trim();
   if (!msg) return;
@@ -52,7 +50,7 @@ sendBtn.addEventListener('click', () => {
   messageInput.value = '';
 });
 
-// Thêm tin nhắn vào chat div
+// Thêm tin nhắn vào chat
 function appendChat(msg) {
   const p = document.createElement('p');
   p.textContent = msg;
