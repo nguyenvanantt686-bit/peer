@@ -10,19 +10,20 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(cors());
-
-// Serve static files từ thư mục public
+app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-// PeerJS server
+// Tạo HTTP server
 const httpServer = createServer(app);
+
+// PeerJS server trung tâm (hub)
 const peerServer = ExpressPeerServer(httpServer, {
   debug: true,
   path: "/myapp"
 });
 app.use("/peerjs", peerServer);
 
-// Start server trên port của Render
+// Port Render cung cấp
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
